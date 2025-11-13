@@ -5,7 +5,7 @@ import { compileChangelog } from '@/lib/changelog'
 import { RepoConfig } from '@/types'
 
 export const dynamic = 'force-dynamic'
-export const revalidate = 3600 // Revalidate every hour
+export const revalidate = 0 // Always fetch fresh data
 
 export async function GET() {
   try {

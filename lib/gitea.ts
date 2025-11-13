@@ -70,7 +70,7 @@ async function getDefaultBranch(owner: string, repo: string): Promise<string> {
 export async function getCommits(
   owner: string,
   repo: string,
-  limit: number = 50,
+  limit: number = 100,
   sha?: string
 ): Promise<GiteaCommit[]> {
   try {

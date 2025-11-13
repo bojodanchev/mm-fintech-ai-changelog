@@ -6,7 +6,7 @@ import { RepoConfig } from '@/types'
 import { format, parseISO } from 'date-fns'
 
 export const dynamic = 'force-dynamic'
-export const revalidate = 3600
+export const revalidate = 0 // Always fetch fresh data
 
 export async function GET() {
   try {
