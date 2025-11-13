@@ -52,17 +52,23 @@ function createChangelogEntryFromCommit(
   commit: GiteaCommit,
   repository: string
 ): ChangelogEntry {
-  const { type, cleanMessage } = parseCommitMessage(commit.commit.message)
+  // Handle Gitea's response structure - it might be different
+  const commitMessage = commit.commit?.message || (commit as any).message || 'No message'
+  const commitAuthor = commit.commit?.author || (commit as any).author
+  const commitDate = commitAuthor?.date || (commit as any).created || new Date().toISOString()
+  const authorName = commit.author?.login || commitAuthor?.name || (commit as any).author?.name || 'Unknown'
+  
+  const { type, cleanMessage } = parseCommitMessage(commitMessage)
   
   return {
     id: `commit-${commit.sha}`,
     type,
     message: cleanMessage,
     repository,
-    author: commit.author?.login || commit.commit.author.name,
-    date: commit.commit.author.date,
+    author: authorName,
+    date: commitDate,
     sha: commit.sha,
-    url: commit.html_url,
+    url: commit.html_url || (commit as any).url,
   }
 }
 
