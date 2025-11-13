@@ -53,22 +53,29 @@ function createChangelogEntryFromCommit(
   repository: string
 ): ChangelogEntry {
   // Handle Gitea's response structure - it might be different
+  // Gitea API returns: { sha, commit: { message, author: { name, email, date } }, author: { login, ... }, html_url }
   const commitMessage = commit.commit?.message || (commit as any).message || 'No message'
   const commitAuthor = commit.commit?.author || (commit as any).author
-  const commitDate = commitAuthor?.date || (commit as any).created || new Date().toISOString()
-  const authorName = commit.author?.login || commitAuthor?.name || (commit as any).author?.name || 'Unknown'
+  const commitDate = commitAuthor?.date || (commit as any).created || (commit as any).date || new Date().toISOString()
+  const authorName = commit.author?.login || commitAuthor?.name || (commit as any).author?.name || (commit as any).author?.login || 'Unknown'
+  const commitSha = commit.sha || (commit as any).id || 'unknown'
+  const commitUrl = commit.html_url || (commit as any).url || (commit as any).html_url || ''
+  
+  if (!commitMessage || commitMessage === 'No message') {
+    console.warn(`[Changelog] Commit ${commitSha} has no message`)
+  }
   
   const { type, cleanMessage } = parseCommitMessage(commitMessage)
   
   return {
-    id: `commit-${commit.sha}`,
+    id: `commit-${commitSha}`,
     type,
     message: cleanMessage,
     repository,
     author: authorName,
     date: commitDate,
-    sha: commit.sha,
-    url: commit.html_url || (commit as any).url,
+    sha: commitSha,
+    url: commitUrl,
   }
 }
 
@@ -94,12 +101,27 @@ export function compileChangelog(
 ): ChangelogGroup[] {
   const entries: ChangelogEntry[] = []
   
+  console.log('[Changelog] Starting compilation')
+  console.log('[Changelog] Total repos with commits:', commitsData.length)
+  console.log('[Changelog] Total repos with releases:', releasesData.length)
+  
   // Add commits
   commitsData.forEach(({ repo, commits }) => {
-    commits.forEach((commit) => {
-      entries.push(createChangelogEntryFromCommit(commit, repo))
+    console.log(`[Changelog] Processing ${commits.length} commits for ${repo}`)
+    commits.forEach((commit, index) => {
+      try {
+        const entry = createChangelogEntryFromCommit(commit, repo)
+        entries.push(entry)
+        if (index === 0) {
+          console.log(`[Changelog] Sample entry from ${repo}:`, JSON.stringify(entry, null, 2))
+        }
+      } catch (error) {
+        console.error(`[Changelog] Error creating entry from commit:`, error, commit)
+      }
     })
   })
+  
+  console.log(`[Changelog] Total entries created: ${entries.length}`)
   
   // Add releases
   releasesData.forEach(({ repo, releases }) => {

@@ -42,6 +42,10 @@ async function giteaRequest<T>(endpoint: string): Promise<T> {
 
     const data = await response.json()
     console.log(`[Gitea] Success: ${endpoint} - Received ${Array.isArray(data) ? data.length : 1} item(s)`)
+    if (Array.isArray(data) && data.length > 0) {
+      console.log(`[Gitea] First item structure:`, JSON.stringify(Object.keys(data[0]), null, 2))
+      console.log(`[Gitea] First item sample:`, JSON.stringify(data[0], null, 2).substring(0, 500))
+    }
     return data
   } catch (error: any) {
     clearTimeout(timeoutId)

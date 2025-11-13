@@ -26,9 +26,20 @@ export async function GET() {
     console.log('[Changelog API] Commits data:', commitsData.map(d => ({ repo: d.repo, count: d.commits.length })))
     console.log('[Changelog API] Releases data:', releasesData.map(d => ({ repo: d.repo, count: d.releases.length })))
     
+    // Log detailed commit information
+    commitsData.forEach(({ repo, commits }) => {
+      console.log(`[Changelog API] Repo ${repo}: ${commits.length} commits`)
+      if (commits.length > 0) {
+        console.log(`[Changelog API] First commit structure:`, JSON.stringify(commits[0], null, 2))
+      }
+    })
+    
     const changelog = compileChangelog(commitsData, releasesData)
     
     console.log('[Changelog API] Generated changelog groups:', changelog.length)
+    if (changelog.length > 0) {
+      console.log('[Changelog API] First group:', JSON.stringify(changelog[0], null, 2))
+    }
     
     return NextResponse.json(changelog)
   } catch (error) {

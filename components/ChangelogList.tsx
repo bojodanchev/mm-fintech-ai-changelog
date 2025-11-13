@@ -14,11 +14,18 @@ export default function ChangelogList() {
       try {
         const response = await fetch('/api/changelog')
         if (!response.ok) {
-          throw new Error('Failed to fetch changelog')
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.error || errorData.details || `HTTP ${response.status}: Failed to fetch changelog`)
         }
         const data = await response.json()
+        console.log('[Frontend] Received changelog data:', data)
+        console.log('[Frontend] Number of groups:', data.length)
+        if (Array.isArray(data) && data.length > 0) {
+          console.log('[Frontend] First group:', data[0])
+        }
         setChangelogs(data)
       } catch (err) {
+        console.error('[Frontend] Error fetching changelog:', err)
         setError(err instanceof Error ? err.message : 'An error occurred')
       } finally {
         setLoading(false)
