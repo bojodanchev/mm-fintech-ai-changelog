@@ -1,13 +1,18 @@
 import { GiteaCommit, GiteaRelease, RepoConfig } from '@/types'
 
-const GITEA_URL = process.env.GITEA_URL
-const GITEA_TOKEN = process.env.GITEA_TOKEN
+function getGiteaConfig() {
+  const GITEA_URL = process.env.GITEA_URL
+  const GITEA_TOKEN = process.env.GITEA_TOKEN
 
-if (!GITEA_URL || !GITEA_TOKEN) {
-  throw new Error('GITEA_URL and GITEA_TOKEN must be set in environment variables')
+  if (!GITEA_URL || !GITEA_TOKEN) {
+    throw new Error('GITEA_URL and GITEA_TOKEN must be set in environment variables')
+  }
+
+  return { GITEA_URL, GITEA_TOKEN }
 }
 
 async function giteaRequest<T>(endpoint: string): Promise<T> {
+  const { GITEA_URL, GITEA_TOKEN } = getGiteaConfig()
   const url = `${GITEA_URL}/api/v1${endpoint}`
   const response = await fetch(url, {
     headers: {
