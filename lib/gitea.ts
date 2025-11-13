@@ -57,31 +57,57 @@ async function giteaRequest<T>(endpoint: string): Promise<T> {
   }
 }
 
+async function getDefaultBranch(owner: string, repo: string): Promise<string> {
+  try {
+    const repoInfo = await giteaRequest<any>(`/repos/${owner}/${repo}`)
+    return repoInfo.default_branch || 'development'
+  } catch (error) {
+    console.warn(`[Gitea] Could not fetch default branch, using 'development'`)
+    return 'development'
+  }
+}
+
 export async function getCommits(
   owner: string,
   repo: string,
   limit: number = 50,
-  sha: string = 'master'
+  sha?: string
 ): Promise<GiteaCommit[]> {
   try {
+    // If no branch specified, get the default branch
+    if (!sha) {
+      sha = await getDefaultBranch(owner, repo)
+    }
+    
     console.log(`[Gitea] Fetching commits for ${owner}/${repo} (branch: ${sha})`)
-    // Try master first, then main if master fails
+    
+    // Try the specified/default branch first
     let commits: GiteaCommit[] = []
     try {
       commits = await giteaRequest<GiteaCommit[]>(
         `/repos/${owner}/${repo}/commits?sha=${sha}&limit=${limit}`
       )
     } catch (error) {
-      // If master fails, try main branch
-      if (sha === 'master') {
-        console.log(`[Gitea] Master branch failed, trying main branch`)
-        commits = await giteaRequest<GiteaCommit[]>(
-          `/repos/${owner}/${repo}/commits?sha=main&limit=${limit}`
-        )
-      } else {
-        throw error
+      // If default branch fails, try common alternatives
+      const branchesToTry = ['development', 'main', 'master']
+      for (const branch of branchesToTry) {
+        if (branch === sha) continue // Skip the one we already tried
+        try {
+          console.log(`[Gitea] Trying branch: ${branch}`)
+          commits = await giteaRequest<GiteaCommit[]>(
+            `/repos/${owner}/${repo}/commits?sha=${branch}&limit=${limit}`
+          )
+          console.log(`[Gitea] Successfully fetched from branch: ${branch}`)
+          break
+        } catch (e) {
+          // Continue to next branch
+        }
+      }
+      if (commits.length === 0) {
+        throw error // Re-throw original error if all branches failed
       }
     }
+    
     console.log(`[Gitea] Fetched ${commits?.length || 0} commits for ${owner}/${repo}`)
     if (commits && commits.length > 0) {
       console.log(`[Gitea] Sample commit:`, JSON.stringify(commits[0], null, 2))
