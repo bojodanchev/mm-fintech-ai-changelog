@@ -61,7 +61,7 @@ try {
         }
         $response.Content | Out-File -FilePath $OutputFile -Encoding UTF8
         $lineCount = (Get-Content $OutputFile | Measure-Object -Line).Lines
-        Write-Host "✓ Changelog refreshed and saved to: $OutputFile" -ForegroundColor Green
+        Write-Host "Changelog refreshed and saved to: $OutputFile" -ForegroundColor Green
         Write-Host "  Total lines: $lineCount" -ForegroundColor Cyan
         Write-Host ""
         Write-Host "You can now copy the contents of this file into your wiki." -ForegroundColor Yellow
@@ -79,6 +79,6 @@ try {
     Write-Host "Available repositories:" -ForegroundColor Yellow
     Write-Host "  - LLM Change Management" -ForegroundColor Cyan
     Write-Host "  - LLM Support Tickets" -ForegroundColor Cyan
-    Write-Host "  - LLM Wiki" -ForegroundColor Cyan
+    Write-Host '  - LLM Wiki' -ForegroundColor Cyan
     exit 1
 }
