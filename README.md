@@ -7,10 +7,10 @@ A modern, dark-themed changelog application that automatically fetches and displ
 - 🎨 Dark-themed modern UI
 - 📦 Fetches commits and releases from multiple Gitea repositories
 - 🔄 Automatic changelog compilation and categorization
-- 🚀 Deployable on Vercel
+- 🏠 Optimized for local development (can access internal Gitea instances)
 - 📱 Responsive design
 
-## Setup
+## Local Development Setup
 
 ### 1. Install Dependencies
 
@@ -25,9 +25,9 @@ Edit `config/repos.json` to include your Gitea repositories:
 ```json
 [
   {
-    "owner": "your-username",
-    "repo": "your-repo-name",
-    "name": "Display Name (optional)"
+    "owner": "Artificial",
+    "repo": "llm-change-management",
+    "name": "LLM Change Management"
   }
 ]
 ```
@@ -37,15 +37,11 @@ Edit `config/repos.json` to include your Gitea repositories:
 Create a `.env.local` file in the root directory:
 
 ```env
-GITEA_URL=https://your-gitea-instance.com
-GITEA_TOKEN=your_personal_access_token_here
+GITEA_URL=https://gitea.speedy.io
+GITEA_TOKEN=525310a02f1ca34e62d9ece1414bacb553495817
 ```
 
-To create a Gitea personal access token:
-1. Go to your Gitea instance
-2. Navigate to Settings → Applications → Generate New Token
-3. Give it a name and select appropriate permissions (read access to repositories)
-4. Copy the token to your `.env.local` file
+**Note:** The `.env.local` file is already in `.gitignore` and won't be committed to Git.
 
 ### 4. Run Development Server
 
@@ -55,30 +51,37 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) to view the changelog.
 
-## Deployment on Vercel
+The application will automatically fetch commits and releases from your configured Gitea repositories and display them in a beautiful changelog format.
 
-### 1. Push to Git Repository
+### 5. Production Build (Optional)
+
+To build and run a production version locally:
 
 ```bash
-git init
-git add .
-git commit -m "Initial commit"
-git remote add origin <your-repo-url>
-git push -u origin main
+npm run build
+npm start
 ```
 
-### 2. Deploy on Vercel
+This will start the production server on [http://localhost:3000](http://localhost:3000).
 
-1. Go to [Vercel](https://vercel.com)
-2. Import your Git repository
+## Deployment Options
+
+### Local Development (Recommended for Internal Gitea)
+
+This application is optimized for local development, especially when your Gitea instance is behind a firewall or VPN. Simply run `npm run dev` and access it at `http://localhost:3000`.
+
+### Vercel Deployment (For Public Gitea Instances)
+
+If your Gitea instance is publicly accessible, you can deploy to Vercel:
+
+1. Push to Git Repository
+2. Go to [Vercel](https://vercel.com) and import your repository
 3. Add environment variables:
    - `GITEA_URL`: Your Gitea instance URL
    - `GITEA_TOKEN`: Your Gitea personal access token
 4. Deploy
 
-### 3. Configure Repositories
-
-After deployment, you can update `config/repos.json` and push changes. The changelog will automatically update.
+**Note:** Vercel serverless functions cannot access internal/private Gitea instances. Use local development for internal Gitea servers.
 
 ## How It Works
 
