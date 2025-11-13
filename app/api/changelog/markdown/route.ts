@@ -49,46 +49,79 @@ export async function GET() {
     if (changelog.length === 0) {
       markdown += 'No changelog entries found.\n\n'
     } else {
+      // Group entries by repository first, then by date
+      const repoGroups = new Map<string, Map<string, ChangelogEntry[]>>()
+      
       changelog.forEach((group) => {
-        markdown += `## ${group.date}\n\n`
-        
         group.entries.forEach((entry) => {
-          const emoji = typeEmoji[entry.type] || '📝'
-          const label = typeLabels[entry.type] || entry.type
-          
-          // Clean up the message - remove extra newlines and format
-          const cleanMessage = entry.message
-            .split('\n')
-            .map(line => line.trim())
-            .filter(line => line.length > 0)
-            .join(' ')
-            .substring(0, 200) // Limit length
-          
-          markdown += `### ${emoji} ${label}\n\n`
-          markdown += `${cleanMessage}\n\n`
-          markdown += `- **Repository:** ${entry.repository}\n`
-          markdown += `- **Author:** ${entry.author}\n`
-          
+          if (!repoGroups.has(entry.repository)) {
+            repoGroups.set(entry.repository, new Map())
+          }
+          const repoDates = repoGroups.get(entry.repository)!
+          if (!repoDates.has(group.date)) {
+            repoDates.set(group.date, [])
+          }
+          repoDates.get(group.date)!.push(entry)
+        })
+      })
+      
+      // Generate markdown grouped by repository
+      repoGroups.forEach((dates, repoName) => {
+        markdown += `# ${repoName}\n\n`
+        
+        // Sort dates (newest first)
+        const sortedDates = Array.from(dates.entries()).sort((a, b) => {
           try {
-            const entryDate = parseISO(entry.date)
-            markdown += `- **Date:** ${format(entryDate, 'PPpp')}\n`
+            const dateA = parseISO(a[1][0]?.date || '1970-01-01')
+            const dateB = parseISO(b[1][0]?.date || '1970-01-01')
+            return dateB.getTime() - dateA.getTime()
           } catch {
-            markdown += `- **Date:** ${entry.date}\n`
+            return 0
           }
-          
-          if (entry.url) {
-            const shortSha = entry.sha?.substring(0, 7) || 'link'
-            markdown += `- **View Commit:** [${shortSha}](${entry.url})\n`
-          }
-          
-          if (entry.version) {
-            markdown += `- **Version:** ${entry.version}\n`
-          }
-          
-          markdown += '\n'
         })
         
-        markdown += '---\n\n'
+        sortedDates.forEach(([date, entries]) => {
+          markdown += `## ${date}\n\n`
+          
+          entries.forEach((entry) => {
+            const emoji = typeEmoji[entry.type] || '📝'
+            const label = typeLabels[entry.type] || entry.type
+            
+            // Clean up the message - remove extra newlines and format
+            const cleanMessage = entry.message
+              .split('\n')
+              .map(line => line.trim())
+              .filter(line => line.length > 0)
+              .join(' ')
+              .substring(0, 200) // Limit length
+            
+            markdown += `### ${emoji} ${label}\n\n`
+            markdown += `${cleanMessage}\n\n`
+            markdown += `- **Author:** ${entry.author}\n`
+            
+            try {
+              const entryDate = parseISO(entry.date)
+              markdown += `- **Date:** ${format(entryDate, 'PPpp')}\n`
+            } catch {
+              markdown += `- **Date:** ${entry.date}\n`
+            }
+            
+            if (entry.url) {
+              const shortSha = entry.sha?.substring(0, 7) || 'link'
+              markdown += `- **View Commit:** [${shortSha}](${entry.url})\n`
+            }
+            
+            if (entry.version) {
+              markdown += `- **Version:** ${entry.version}\n`
+            }
+            
+            markdown += '\n'
+          })
+          
+          markdown += '---\n\n'
+        })
+        
+        markdown += '\n\n'
       })
     }
     

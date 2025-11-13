@@ -3,6 +3,16 @@
     "owner": "Artificial",
     "repo": "llm-change-management",
     "name": "LLM Change Management"
+  },
+  {
+    "owner": "Artificial",
+    "repo": "llm-support-tickets",
+    "name": "LLM Support Tickets"
+  },
+  {
+    "owner": "Artificial",
+    "repo": "llm-wiki",
+    "name": "LLM Wiki"
   }
 ]
 
