@@ -17,22 +17,40 @@ async function giteaRequest<T>(endpoint: string): Promise<T> {
   
   console.log(`[Gitea] Fetching: ${url}`)
   
-  const response = await fetch(url, {
-    headers: {
-      Authorization: `token ${GITEA_TOKEN}`,
-      'Content-Type': 'application/json',
-    },
-  })
+  // Increase timeout and add retry logic for internal networks
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), 30000) // 30 second timeout
+  
+  try {
+    const response = await fetch(url, {
+      headers: {
+        Authorization: `token ${GITEA_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      signal: controller.signal,
+      // Add keepalive for better connection handling
+      keepalive: true,
+    })
+    
+    clearTimeout(timeoutId)
 
-  if (!response.ok) {
-    const errorText = await response.text()
-    console.error(`[Gitea] API error ${response.status}:`, errorText)
-    throw new Error(`Gitea API error: ${response.status} ${response.statusText} - ${errorText}`)
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error(`[Gitea] API error ${response.status}:`, errorText)
+      throw new Error(`Gitea API error: ${response.status} ${response.statusText} - ${errorText}`)
+    }
+
+    const data = await response.json()
+    console.log(`[Gitea] Success: ${endpoint} - Received ${Array.isArray(data) ? data.length : 1} item(s)`)
+    return data
+  } catch (error: any) {
+    clearTimeout(timeoutId)
+    if (error.name === 'AbortError' || error.code === 'UND_ERR_CONNECT_TIMEOUT') {
+      console.error(`[Gitea] Connection timeout - Gitea instance may not be accessible from Vercel's network`)
+      throw new Error(`Cannot connect to Gitea instance. The server at ${GITEA_URL} may be behind a firewall or VPN and is not accessible from Vercel's serverless functions. Consider using a proxy or making the Gitea instance publicly accessible.`)
+    }
+    throw error
   }
-
-  const data = await response.json()
-  console.log(`[Gitea] Success: ${endpoint} - Received ${Array.isArray(data) ? data.length : 1} item(s)`)
-  return data
 }
 
 export async function getCommits(

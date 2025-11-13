@@ -45,10 +45,28 @@ export default function ChangelogList() {
   }
 
   if (error) {
+    const isConnectionError = error.includes('Cannot connect to Gitea') || error.includes('timeout') || error.includes('UND_ERR_CONNECT_TIMEOUT')
+    
     return (
       <div className="bg-red-900/20 border border-red-500/50 rounded-lg p-6">
         <h2 className="text-red-400 font-semibold mb-2">Error</h2>
-        <p className="text-red-300">{error}</p>
+        <p className="text-red-300 mb-4">{error}</p>
+        {isConnectionError && (
+          <div className="mt-4 p-4 bg-yellow-900/20 border border-yellow-500/50 rounded">
+            <h3 className="text-yellow-400 font-semibold mb-2">Network Connectivity Issue</h3>
+            <p className="text-yellow-300 text-sm mb-2">
+              Vercel's serverless functions cannot reach your Gitea instance. This usually means:
+            </p>
+            <ul className="text-yellow-300 text-sm list-disc list-inside space-y-1">
+              <li>The Gitea server is behind a firewall or VPN</li>
+              <li>The server is only accessible from internal networks</li>
+              <li>The server is not publicly accessible from the internet</li>
+            </ul>
+            <p className="text-yellow-300 text-sm mt-3">
+              <strong>Solutions:</strong> Make Gitea publicly accessible (with authentication), use a proxy/gateway, or set up webhooks instead of polling.
+            </p>
+          </div>
+        )}
       </div>
     )
   }
