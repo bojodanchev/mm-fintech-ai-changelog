@@ -7,16 +7,30 @@ import { RepoConfig } from '@/types'
 export const dynamic = 'force-dynamic'
 export const revalidate = 0 // Always fetch fresh data
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const repos = reposConfig as RepoConfig[]
+    const { searchParams } = new URL(request.url)
+    const repoFilter = searchParams.get('repo') // Filter by repository name
+    
+    let repos = reposConfig as RepoConfig[]
+    
+    // Filter by repository if specified
+    if (repoFilter) {
+      repos = repos.filter(
+        (repo) => 
+          repo.name?.toLowerCase() === repoFilter.toLowerCase() ||
+          repo.repo.toLowerCase() === repoFilter.toLowerCase() ||
+          `${repo.owner}/${repo.repo}`.toLowerCase() === repoFilter.toLowerCase()
+      )
+    }
     
     console.log('[Changelog API] Starting changelog generation')
+    console.log('[Changelog API] Filter:', repoFilter || 'all repositories')
     console.log('[Changelog API] Configured repos:', JSON.stringify(repos, null, 2))
     
     if (!repos || repos.length === 0) {
       return NextResponse.json(
-        { error: 'No repositories configured' },
+        { error: repoFilter ? `No repository found matching: ${repoFilter}` : 'No repositories configured' },
         { status: 400 }
       )
     }

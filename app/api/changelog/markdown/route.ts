@@ -8,13 +8,26 @@ import { format, parseISO } from 'date-fns'
 export const dynamic = 'force-dynamic'
 export const revalidate = 0 // Always fetch fresh data
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const repos = reposConfig as RepoConfig[]
+    const { searchParams } = new URL(request.url)
+    const repoFilter = searchParams.get('repo') // Filter by repository name
+    
+    let repos = reposConfig as RepoConfig[]
+    
+    // Filter by repository if specified
+    if (repoFilter) {
+      repos = repos.filter(
+        (repo) => 
+          repo.name?.toLowerCase() === repoFilter.toLowerCase() ||
+          repo.repo.toLowerCase() === repoFilter.toLowerCase() ||
+          `${repo.owner}/${repo.repo}`.toLowerCase() === repoFilter.toLowerCase()
+      )
+    }
     
     if (!repos || repos.length === 0) {
       return NextResponse.json(
-        { error: 'No repositories configured' },
+        { error: repoFilter ? `No repository found matching: ${repoFilter}` : 'No repositories configured' },
         { status: 400 }
       )
     }

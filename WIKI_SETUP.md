@@ -14,25 +14,50 @@ The server will start at `http://localhost:3000`
 
 ### Step 2: Fetch the Markdown
 
-**Option A: Using the provided script (Windows):**
+**Option A: Fetch all repositories (Windows):**
 ```powershell
 .\scripts\fetch-markdown.ps1
 ```
 
-**Option B: Using the provided script (Linux/Mac):**
+**Option B: Fetch specific repository (Windows):**
+```powershell
+# Get changelog for LLM Wiki only
+.\scripts\fetch-markdown.ps1 "LLM Wiki"
+
+# Get changelog for LLM Support Tickets only
+.\scripts\fetch-markdown.ps1 "LLM Support Tickets"
+
+# Get changelog for LLM Change Management only
+.\scripts\fetch-markdown.ps1 "LLM Change Management"
+```
+
+**Option C: Using the provided script (Linux/Mac):**
 ```bash
 chmod +x scripts/fetch-markdown.sh
+
+# All repos
 ./scripts/fetch-markdown.sh
+
+# Specific repo
+./scripts/fetch-markdown.sh "LLM Wiki"
 ```
 
-**Option C: Using curl directly:**
+**Option D: Using curl directly:**
 ```bash
+# All repos
 curl http://localhost:3000/api/changelog/markdown > changelog.md
+
+# Specific repo
+curl "http://localhost:3000/api/changelog/markdown?repo=LLM%20Wiki" > wiki-changelog.md
 ```
 
-**Option D: Using PowerShell directly:**
+**Option E: Using PowerShell directly:**
 ```powershell
+# All repos
 Invoke-WebRequest -Uri "http://localhost:3000/api/changelog/markdown" -OutFile "changelog.md"
+
+# Specific repo
+Invoke-WebRequest -Uri "http://localhost:3000/api/changelog/markdown?repo=LLM%20Wiki" -OutFile "wiki-changelog.md"
 ```
 
 ### Step 3: Copy to Your Wiki
