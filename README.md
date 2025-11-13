@@ -91,6 +91,36 @@ If your Gitea instance is publicly accessible, you can deploy to Vercel:
 4. Groups changes by date
 5. Displays them in a modern, dark-themed UI
 
+## Quick Commands
+
+### Fetch Individual Repository Changelogs
+
+```powershell
+# LLM Wiki
+.\scripts\fetch-markdown.ps1 "LLM Wiki"
+
+# LLM Support Tickets  
+.\scripts\fetch-markdown.ps1 "LLM Support Tickets"
+
+# LLM Change Management
+.\scripts\fetch-markdown.ps1 "LLM Change Management"
+```
+
+Each command automatically updates its corresponding markdown file:
+- `wiki-changelog.md` - LLM Wiki
+- `support-tickets-changelog.md` - LLM Support Tickets
+- `change-management-changelog.md` - LLM Change Management
+
+**Note:** Files are automatically overwritten (old content replaced) to keep them clean and up-to-date.
+
+### Fetch All Repositories
+
+```powershell
+.\scripts\fetch-all-repos.ps1
+```
+
+This refreshes all three repository changelogs at once.
+
 ## Commit Message Format
 
 The application supports conventional commits format:
